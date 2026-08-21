@@ -109,10 +109,12 @@ import {
     LuSettings2,
     LuShare2,
     LuShieldAlert,
+    LuShrink,
     LuShuffle,
     LuSkipBack,
     LuSkipForward,
     LuSlidersHorizontal,
+    LuSparkle,
     LuSquare,
     LuSquareCheck,
     LuSquareMenu,
@@ -142,12 +144,15 @@ import { MdOutlineVisibility, MdOutlineVisibilityOff } from 'react-icons/md';
 import { PiMouseLeftClickFill, PiMouseRightClickFill } from 'react-icons/pi';
 import { RiPlayListAddLine, RiRepeat2Line, RiRepeatOneLine } from 'react-icons/ri';
 
+import deezerLogoIcon from './deezer_logo_icon.svg';
 import styles from './icon.module.css';
 import lastfmLogoIcon from './lastfm_logo_icon.png';
 import listenbrainzLogoIcon from './listenbrainz_logo_icon.svg';
 import musicbrainzLogoIcon from './musicbrainz_logo_icon.svg';
 import qobuzLogoIcon from './qobuz_logo_icon.png';
 import spotifyLogoIcon from './spotify_logo_icon.svg';
+import tidalLogoIcon from './tidal_logo_icon.svg';
+import youtubeLogoIcon from './youtube_logo_icon.svg';
 
 export type AppIconSelection = keyof typeof AppIcon;
 
@@ -224,6 +229,45 @@ const LastfmLogoIcon = forwardRef<HTMLImageElement, LogoImgProps>(
     ),
 );
 
+const DeezerLogoIcon = forwardRef<HTMLImageElement, LogoImgProps>(
+    ({ className, size, style, ...props }, ref) => (
+        <img
+            alt="Deezer"
+            className={className}
+            ref={ref}
+            src={deezerLogoIcon}
+            style={logoImgStyle(size) ?? style}
+            {...props}
+        />
+    ),
+);
+
+const TidalLogoIcon = forwardRef<HTMLImageElement, LogoImgProps>(
+    ({ className, size, style, ...props }, ref) => (
+        <img
+            alt="Tidal"
+            className={className}
+            ref={ref}
+            src={tidalLogoIcon}
+            style={logoImgStyle(size) ?? style}
+            {...props}
+        />
+    ),
+);
+
+const YouTubeLogoIcon = forwardRef<HTMLImageElement, LogoImgProps>(
+    ({ className, size, style, ...props }, ref) => (
+        <img
+            alt="YouTube"
+            className={className}
+            ref={ref}
+            src={youtubeLogoIcon}
+            style={logoImgStyle(size) ?? style}
+            {...props}
+        />
+    ),
+);
+
 export const AppIcon = {
     add: LuPlus,
     album: LuDisc3,
@@ -247,12 +291,15 @@ export const AppIcon = {
     arrowUpToLine: LuArrowUpToLine,
     artist: LuUserPen,
     audioLines: LuAudioLines,
+    brandDeezer: DeezerLogoIcon,
     brandGitHub: LuGithub,
     brandLastfm: LastfmLogoIcon,
     brandListenBrainz: ListenBrainzLogoIcon,
     brandMusicBrainz: MusicBrainzLogoIcon,
     brandQobuz: QobuzLogoIcon,
     brandSpotify: SpotifyLogoIcon,
+    brandTidal: TidalLogoIcon,
+    brandYouTube: YouTubeLogoIcon,
     cache: LuCloudDownload,
     check: LuCheck,
     circle: LuCircle,
@@ -340,6 +387,7 @@ export const AppIcon = {
     queue: LuList,
     radio: LuRadio,
     refresh: LuRotateCw,
+    related: LuSparkle,
     remove: LuMinus,
     save: LuSave,
     search: LuSearch,
@@ -347,6 +395,7 @@ export const AppIcon = {
     settings: LuSettings2,
     settings2: LuSettings,
     share: LuShare2,
+    shrink: LuShrink,
     signIn: LuLogIn,
     signOut: LuLogOut,
     sleepTimer: LuTimer,

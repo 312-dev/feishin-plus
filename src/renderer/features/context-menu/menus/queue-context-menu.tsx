@@ -6,6 +6,7 @@ import { EditMetadataAction } from '/@/renderer/features/context-menu/actions/ed
 import { GetInfoAction } from '/@/renderer/features/context-menu/actions/get-info-action';
 import { GoToAction } from '/@/renderer/features/context-menu/actions/go-to-action';
 import { MoveQueueItemsAction } from '/@/renderer/features/context-menu/actions/move-queue-items-action';
+import { PlayAction } from '/@/renderer/features/context-menu/actions/play-action';
 import { PlayTrackRadioAction } from '/@/renderer/features/context-menu/actions/play-track-radio-action';
 import { RemoveFromQueueAction } from '/@/renderer/features/context-menu/actions/remove-from-queue-action';
 import { SetFavoriteAction } from '/@/renderer/features/context-menu/actions/set-favorite-action';
@@ -33,6 +34,7 @@ export const QueueContextMenu = ({ items }: QueueContextMenuProps) => {
         >
             <RemoveFromQueueAction items={items} />
             <ContextMenu.Divider />
+            <PlayAction ids={ids} itemType={LibraryItem.SONG} songs={items} />
             <MoveQueueItemsAction items={items} />
             <ShuffleItemsAction items={items} />
             <ContextMenu.Divider />
@@ -44,7 +46,7 @@ export const QueueContextMenu = ({ items }: QueueContextMenuProps) => {
             <SetRatingAction ids={ids} itemType={LibraryItem.SONG} />
             <ContextMenu.Divider />
             <DownloadAction ids={ids} />
-            <ShareAction ids={ids} itemType={LibraryItem.SONG} />
+            <ShareAction items={items} itemType={LibraryItem.SONG} />
             <ContextMenu.Divider />
             <GoToAction items={items} />
             <ShowInFileExplorerAction items={items} />

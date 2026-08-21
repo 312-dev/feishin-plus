@@ -37,6 +37,11 @@ import './features';
 import { hotkeyToElectronAccelerator } from './utils';
 
 import { disableAutoUpdates, isLinux, isMacOS, isWindows } from '/@/main/env';
+import {
+    clampWindowBoundsToDisplay,
+    DEFAULT_WINDOW_BOUNDS,
+    resolveWindowBounds,
+} from '/@/main/utils/window-bounds';
 import { PlayerRepeat, PlayerStatus, PlayerType, TitleTheme } from '/@/shared/types/types';
 
 const ALPHA_UPDATER_CONFIG: {
@@ -631,11 +636,29 @@ async function createWindow(first = true): Promise<void> {
         },
     };
 
+    const savedBounds = store.get('bounds') as Rectangle | undefined;
+    const workArea = (
+        savedBounds && Number.isFinite(savedBounds.x) && Number.isFinite(savedBounds.y)
+            ? screen.getDisplayMatching(savedBounds)
+            : screen.getPrimaryDisplay()
+    ).workArea;
+    const windowBounds = resolveWindowBounds(savedBounds, workArea);
+
+    if (
+        savedBounds &&
+        (windowBounds.width !== savedBounds.width || windowBounds.height !== savedBounds.height)
+    ) {
+        log.warn('Clamped window bounds to display', {
+            saved: savedBounds,
+            windowBounds,
+            workArea,
+        });
+    }
+
     // Create the browser window.
     mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
         frame: false,
-        height: 900,
         icon: isWindows() ? getAssetPath('icons/icon.ico') : getAssetPath('icons/icon.png'),
         minHeight: 120,
         minWidth: 480,
@@ -650,31 +673,12 @@ async function createWindow(first = true): Promise<void> {
             sandbox: true,
             webSecurity: !store.get('ignore_cors'),
         },
-        width: 1440,
         ...(nativeFrame && isLinux() && nativeFrameConfig.linux),
         ...(nativeFrame && isMacOS() && nativeFrameConfig.macOS),
         ...(nativeFrame && isWindows() && nativeFrameConfig.windows),
+        ...DEFAULT_WINDOW_BOUNDS,
+        ...windowBounds,
     });
-
-    // From https://github.com/electron/electron/issues/526#issuecomment-1663959513
-    const bounds = store.get('bounds') as Rectangle | undefined;
-    if (bounds) {
-        const screenArea = screen.getDisplayMatching(bounds).workArea;
-        if (
-            bounds.x > screenArea.x + screenArea.width ||
-            bounds.x < screenArea.x ||
-            bounds.y < screenArea.y ||
-            bounds.y > screenArea.y + screenArea.height
-        ) {
-            if (bounds.width < screenArea.width && bounds.height < screenArea.height) {
-                mainWindow.setBounds({ height: bounds.height, width: bounds.width });
-            } else {
-                mainWindow.setBounds({ height: 900, width: 1440 });
-            }
-        } else {
-            mainWindow.setBounds(bounds);
-        }
-    }
 
     electronLocalShortcut.register(mainWindow, 'Ctrl+Shift+I', () => {
         mainWindow?.webContents.openDevTools();
@@ -828,9 +832,15 @@ async function createWindow(first = true): Promise<void> {
     }
 
     mainWindow.on('close', (event) => {
-        store.set('bounds', mainWindow?.getNormalBounds());
-        store.set('maximized', mainWindow?.isMaximized());
-        store.set('fullscreen', mainWindow?.isFullScreen());
+        if (mainWindow) {
+            const bounds = mainWindow.getNormalBounds();
+            store.set(
+                'bounds',
+                clampWindowBoundsToDisplay(bounds, screen.getDisplayMatching(bounds).workArea),
+            );
+            store.set('maximized', mainWindow.isMaximized());
+            store.set('fullscreen', mainWindow.isFullScreen());
+        }
 
         if (!exitFromTray && store.get('window_exit_to_tray')) {
             event.preventDefault();
