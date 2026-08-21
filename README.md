@@ -3,31 +3,26 @@
 # Feishin
 
   <p align="center">
-    <a href="https://github.com/jeffvli/feishin/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/jeffvli/feishin?style=flat-square&color=brightgreen"
+    <a href="https://github.com/312-dev/feishin-plus/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/312-dev/feishin-plus?style=flat-square&color=brightgreen"
       alt="License">
     </a>
-      <a href="https://github.com/jeffvli/feishin/releases">
-      <img src="https://img.shields.io/github/v/release/jeffvli/feishin?style=flat-square&color=blue"
+      <a href="https://github.com/312-dev/feishin-plus/releases">
+      <img src="https://img.shields.io/github/v/release/312-dev/feishin-plus?style=flat-square&color=blue"
       alt="Release">
     </a>
-    <a href="https://github.com/jeffvli/feishin/releases">
-      <img src="https://img.shields.io/github/downloads/jeffvli/feishin/total?style=flat-square&color=orange"
+    <a href="https://github.com/312-dev/feishin-plus/releases">
+      <img src="https://img.shields.io/github/downloads/312-dev/feishin-plus/total?style=flat-square&color=orange"
       alt="Downloads">
-    </a>
-  </p>
-  <p align="center">
-    <a href="https://discord.gg/FVKpcMDy5f">
-      <img src="https://img.shields.io/discord/922656312888811530?color=black&label=discord&logo=discord&logoColor=white"
-      alt="Discord">
-    </a>
-    <a href="https://matrix.to/#/#sonixd:matrix.org">
-      <img src="https://img.shields.io/matrix/sonixd:matrix.org?color=black&label=matrix&logo=matrix&logoColor=white"
-      alt="Matrix">
     </a>
   </p>
 
 ---
+
+> **This is a personal fork of [jeffvli/feishin](https://github.com/jeffvli/feishin).** It adds a
+> ListenBrainz-powered Discover page and direct Spotify/Deezer/Tidal/Qobuz/YouTube links in the
+> Share menu, on top of everything upstream already does. Not affiliated with or supported by the
+> upstream maintainers - file issues for this fork's own additions [here](https://github.com/312-dev/feishin-plus/issues).
 
 Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
 
@@ -39,7 +34,9 @@ Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
 - [x] Scrobble playback to your server
 - [x] Smart playlist editor (Navidrome)
 - [x] Synchronized and unsynchronized lyrics support
-- [ ] [Request a feature](https://github.com/jeffvli/feishin/issues) or [view taskboard](https://github.com/users/jeffvli/projects/5/views/1)
+- [x] ListenBrainz Discover page
+- [x] Direct Spotify/Deezer/Tidal/Qobuz/YouTube links in the Share menu
+- [ ] [Request a feature](https://github.com/312-dev/feishin-plus/issues) for this fork's own additions
 
 ## Screenshots
 
@@ -49,7 +46,7 @@ Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
 
 ### Desktop (recommended)
 
-Download the [latest desktop client](https://github.com/jeffvli/feishin/releases). The desktop client is the recommended way to use Feishin. It supports both the MPV and web player backends, as well as includes built-in fetching for lyrics.
+Download the [latest desktop client](https://github.com/312-dev/feishin-plus/releases). The desktop client is the recommended way to use Feishin. It supports both the MPV and web player backends, as well as includes built-in fetching for lyrics.
 
 #### macOS Notes
 
@@ -59,29 +56,27 @@ For media keys to work, you will be prompted to allow Feishin to be a Trusted Ac
 
 #### Linux Notes
 
-Feishin is available in [Flathub](https://flathub.org/en/apps/org.jeffvli.feishin).
-
-Alternatively, you can install it as an Appimage. We provide a small install script to download the latest `.AppImage`, make it executable, and also download the icons required by Desktop Environments. Finally, it generates a `.desktop` file to add Feishin to your Application Launcher.
+You can install it as an AppImage. This fork ships its own small install script to download the latest `.AppImage`, make it executable, and also download the icons required by Desktop Environments. Finally, it generates a `.desktop` file to add Feishin to your Application Launcher.
 
 Simply run the installer like this:
 
 ```sh
 dir=/your/application/directory
-curl 'https://raw.githubusercontent.com/jeffvli/feishin/refs/heads/development/install-feishin-appimage' | sh -s -- "$dir"
+curl 'https://raw.githubusercontent.com/312-dev/feishin-plus/refs/heads/main/install-feishin-appimage' | sh -s -- "$dir"
 ```
 
 The script also has an option to add launch arguments to run Feishin in native Wayland mode. Note that this is experimental in Electron and therefore not officially supported. If you want to use it, run this instead:
 
 ```sh
 dir=/your/application/directory
-curl 'https://raw.githubusercontent.com/jeffvli/feishin/refs/heads/development/install-feishin-appimage' | sh -s -- "$dir" wayland-native
+curl 'https://raw.githubusercontent.com/312-dev/feishin-plus/refs/heads/main/install-feishin-appimage' | sh -s -- "$dir" wayland-native
 ```
 
 It also provides a simple uninstall routine, removing the downloaded files:
 
 ```sh
 dir=/your/application/directory
-curl 'https://raw.githubusercontent.com/jeffvli/feishin/refs/heads/development/install-feishin-appimage' | sh -s -- "$dir" remove
+curl 'https://raw.githubusercontent.com/312-dev/feishin-plus/refs/heads/main/install-feishin-appimage' | sh -s -- "$dir" remove
 ```
 
 The entry should show up in your Application Launcher immediately. If it does not, simply log out, wait 10 seconds, and log back in. Your Desktop Environment may alternatively provide a way to reload entries.
@@ -90,11 +85,11 @@ The entry should show up in your Application Launcher immediately. If it does no
 
 Visit [https://feishin.vercel.app](https://feishin.vercel.app) to use the hosted web version of Feishin. The web client only supports the web player backend.
 
-Feishin is also available as a Docker image. The images are hosted via `ghcr.io` and are available to view [here](https://github.com/jeffvli/feishin/pkgs/container/feishin). You can run the container using the following commands:
+Feishin is also available as a Docker image. The images are hosted via `ghcr.io` and are available to view [here](https://github.com/312-dev/feishin-plus/pkgs/container/feishin-plus). You can run the container using the following commands:
 
 ```bash
 # Run the latest version
-docker run --name feishin -p 9180:9180 ghcr.io/jeffvli/feishin:latest
+docker run --name feishin -p 9180:9180 ghcr.io/312-dev/feishin-plus:latest
 
 # Build the image locally
 docker build -t feishin .
@@ -109,7 +104,7 @@ To install via Docker Compose, use the following snippet. This also works on Por
 services:
     feishin:
         container_name: feishin
-        image: 'ghcr.io/jeffvli/feishin:latest'
+        image: 'ghcr.io/312-dev/feishin-plus:latest'
         restart: unless-stopped
         environment:
             - SERVER_NAME=jellyfin # pre-defined server name
@@ -224,4 +219,4 @@ This project uses [Weblate](https://hosted.weblate.org/projects/feishin/) for tr
 
 ## License
 
-[GNU General Public License v3.0 ©](https://github.com/jeffvli/feishin/blob/dev/LICENSE)
+[GNU General Public License v3.0 ©](https://github.com/312-dev/feishin-plus/blob/main/LICENSE)

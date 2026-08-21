@@ -40,23 +40,23 @@ localShareIcons="${localShare}/icons/hicolor"
 
 if [ "${arg}" = "remove" ]; then
 	rm -v \
-		"${localShareIcons}/512x512/apps/org.jeffvli.feishin.png" \
-		"${localShareIcons}/256x256/apps/org.jeffvli.feishin.png" \
-		"${localShareIcons}/128x128/apps/org.jeffvli.feishin.png" \
-		"${localShareIcons}/64x64/apps/org.jeffvli.feishin.png" \
-		"${localShareIcons}/32x32/apps/org.jeffvli.feishin.png" \
-		"${localShare}/applications/org.jeffvli.feishin.desktop" \
+		"${localShareIcons}/512x512/apps/org.312dev.feishinplus.png" \
+		"${localShareIcons}/256x256/apps/org.312dev.feishinplus.png" \
+		"${localShareIcons}/128x128/apps/org.312dev.feishinplus.png" \
+		"${localShareIcons}/64x64/apps/org.312dev.feishinplus.png" \
+		"${localShareIcons}/32x32/apps/org.312dev.feishinplus.png" \
+		"${localShare}/applications/org.312dev.feishinplus.desktop" \
 		"${dir}/Feishin-linux-${arch}.AppImage"
 	exit 0
 fi
 
 curl --fail -L --create-dirs --write-out '%{filename_effective}\n' \
-	-o "${dir}/Feishin-linux-${arch}.AppImage" "https://github.com/jeffvli/feishin/releases/latest/download/Feishin-linux-${arch}.AppImage" \
-	-o "${localShareIcons}/512x512/apps/org.jeffvli.feishin.png" 'https://github.com/jeffvli/feishin/blob/development/assets/icons/512x512.png?raw=true' \
-	-o "${localShareIcons}/256x256/apps/org.jeffvli.feishin.png" 'https://github.com/jeffvli/feishin/blob/development/assets/icons/256x256.png?raw=true' \
-	-o "${localShareIcons}/128x128/apps/org.jeffvli.feishin.png" 'https://github.com/jeffvli/feishin/blob/development/assets/icons/128x128.png?raw=true' \
-	-o "${localShareIcons}/64x64/apps/org.jeffvli.feishin.png" 'https://github.com/jeffvli/feishin/blob/development/assets/icons/64x64.png?raw=true' \
-	-o "${localShareIcons}/32x32/apps/org.jeffvli.feishin.png" 'https://github.com/jeffvli/feishin/blob/development/assets/icons/32x32.png?raw=true'
+	-o "${dir}/Feishin-linux-${arch}.AppImage" "https://github.com/312-dev/feishin-plus/releases/latest/download/Feishin-linux-${arch}.AppImage" \
+	-o "${localShareIcons}/512x512/apps/org.312dev.feishinplus.png" 'https://github.com/312-dev/feishin-plus/blob/main/assets/icons/512x512.png?raw=true' \
+	-o "${localShareIcons}/256x256/apps/org.312dev.feishinplus.png" 'https://github.com/312-dev/feishin-plus/blob/main/assets/icons/256x256.png?raw=true' \
+	-o "${localShareIcons}/128x128/apps/org.312dev.feishinplus.png" 'https://github.com/312-dev/feishin-plus/blob/main/assets/icons/128x128.png?raw=true' \
+	-o "${localShareIcons}/64x64/apps/org.312dev.feishinplus.png" 'https://github.com/312-dev/feishin-plus/blob/main/assets/icons/64x64.png?raw=true' \
+	-o "${localShareIcons}/32x32/apps/org.312dev.feishinplus.png" 'https://github.com/312-dev/feishin-plus/blob/main/assets/icons/32x32.png?raw=true'
 chmod -v u+x "${dir}/Feishin-linux-${arch}.AppImage"
 
 waylandFlags=""
@@ -76,4 +76,4 @@ mkdir -pv "${localShare}/applications"
 
 export FEISHIN_DESKTOP_EXECUTABLE="${dir}/Feishin-linux-${arch}.AppImage"
 export FEISHIN_DESKTOP_ARGS="${sandboxFlag} ${waylandFlags}"
-curl --fail https://raw.githubusercontent.com/jeffvli/feishin/refs/heads/development/feishin.desktop.tmpl | envsubst > "${localShare}/applications/org.jeffvli.feishin.desktop"
+curl --fail https://raw.githubusercontent.com/312-dev/feishin-plus/refs/heads/main/feishin.desktop.tmpl | envsubst > "${localShare}/applications/org.312dev.feishinplus.desktop"
