@@ -1,4 +1,4 @@
-appId: org.jeffvli.feishin
+appId: org.312dev.feishinplus
 productName: Feishin
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 electronVersion: 41.7.0
@@ -69,7 +69,7 @@ npmRebuild: false
 afterAllArtifactBuild: scripts/after-all-artifact-build.mjs
 publish:
     provider: github
-    owner: jeffvli
-    repo: feishin
+    owner: 312-dev
+    repo: feishin-plus
     channel: latest
     releaseType: draft
