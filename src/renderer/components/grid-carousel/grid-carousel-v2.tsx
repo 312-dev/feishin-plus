@@ -82,6 +82,13 @@ function BaseGridCarousel(props: GridCarouselProps) {
     const containerQuery = providedContainerQuery || defaultContainerQuery;
     const { ref, ...cq } = containerQuery;
 
+    // A provided containerQuery is shared with sibling rows via a single ResizeObserver ref
+    // (see discover-route.tsx), all measuring one page-level container. Attaching that same
+    // ref here too would silently steal the observation onto this row's own div instead -
+    // whichever row mounts last would "win" it permanently, freezing every row's width at
+    // whatever that one div happened to measure. Only self-measure when nothing was provided.
+    const ownRef = providedContainerQuery ? undefined : ref;
+
     const [currentPage, setCurrentPage] = useState({
         isNext: false,
         page: 0,
@@ -256,7 +263,7 @@ function BaseGridCarousel(props: GridCarouselProps) {
     );
 
     return (
-        <div className={styles.gridCarousel} ref={ref}>
+        <div className={styles.gridCarousel} ref={ownRef}>
             {cq.isCalculated && (
                 <>
                     <motion.div
@@ -416,7 +423,10 @@ const GridCarouselSkeleton = (props: GridCarouselSkeletonProps) => {
     return (
         <GridCarousel
             cards={placeholderCards}
-            containerQuery={containerQuery}
+            // Forwards only a genuinely parent-provided query, never this component's own
+            // fallback - otherwise the inner GridCarousel would always see a "provided" query
+            // and never self-measure, even when nothing upstream actually owns one.
+            containerQuery={providedContainerQuery}
             enableRefresh={enableRefresh}
             hasNextPage={false}
             isFetchingNextPage={false}
