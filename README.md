@@ -20,9 +20,11 @@
 ---
 
 > **This is a personal fork of [jeffvli/feishin](https://github.com/jeffvli/feishin).** It adds a
-> ListenBrainz-powered Discover page and direct Spotify/Deezer/Tidal/Qobuz/YouTube links in the
-> Share menu, on top of everything upstream already does. Not affiliated with or supported by the
-> upstream maintainers - file issues for this fork's own additions [here](https://github.com/312-dev/feishin-plus/issues).
+> ListenBrainz-powered Discover page, a ListenBrainz playlist of library tracks you haven't heard
+> yet, a music video panel that plays a track's video muted and in time with your own audio, and
+> direct Spotify/Deezer/Tidal/Qobuz/YouTube links in the Share menu, on top of everything upstream
+> already does. Not affiliated with or supported by the upstream maintainers - file issues for this
+> fork's own additions [here](https://github.com/312-dev/feishin-plus/issues).
 
 Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
 
@@ -35,6 +37,8 @@ Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
 - [x] Smart playlist editor (Navidrome)
 - [x] Synchronized and unsynchronized lyrics support
 - [x] ListenBrainz Discover page
+- [x] Unlistened-tracks playlist kept in sync on ListenBrainz
+- [x] Music video panel synced to local playback, with picture-in-picture (desktop only)
 - [x] Direct Spotify/Deezer/Tidal/Qobuz/YouTube links in the Share menu
 - [ ] [Request a feature](https://github.com/312-dev/feishin-plus/issues) for this fork's own additions
 
@@ -175,6 +179,17 @@ sudo chown root:root chrome-sandbox
 ```
 
 Ubuntu 24.04 specifically introduced breaking changes that affect how namespaces work. Please see https://discourse.ubuntu.com/t/ubuntu-24-04-lts-noble-numbat-release-notes/39890#:~:text=security%20improvements%20 for possible fixes.
+
+### What does the music video panel download?
+
+Two tools, and then the videos themselves. The feature is off by default, and yt-dlp and ffmpeg are
+never fetched on their own: under Settings > General > Music video each has a Download button that
+puts it in the app's data folder, and copies already on your PATH, or at a path you set there, are
+used instead. Once it is on, candidate videos come from a YouTube search and each one is checked
+against your local file by audio fingerprint before it is shown, so a video only plays if it is the
+same recording, starting at the right point in the song. Downloaded videos are kept under a size
+limit you set, least recently watched removed first. The panel is desktop only; the web and Docker
+builds have no process to run yt-dlp in.
 
 ### How can I add custom themes?
 
