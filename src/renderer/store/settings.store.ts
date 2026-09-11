@@ -620,6 +620,8 @@ export const GeneralSettingsSchema = z.object({
     theme: z.string(),
     themeDark: z.string(),
     themeLight: z.string(),
+    /** Keeps a ListenBrainz playlist of unlistened library tracks, auto-clearing what's heard. */
+    unlistenedPlaylistEnabled: z.boolean(),
     useThemeAccentColor: z.boolean(),
     useThemePrimaryShade: z.boolean(),
     volumeWheelStep: z.number(),
@@ -1476,6 +1478,7 @@ const initialState: SettingsState = {
         theme: AppTheme.DEFAULT_DARK,
         themeDark: AppTheme.DEFAULT_DARK,
         themeLight: AppTheme.DEFAULT_LIGHT,
+        unlistenedPlaylistEnabled: false,
         useThemeAccentColor: false,
         useThemePrimaryShade: true,
         volumeWheelStep: 5,
@@ -3010,10 +3013,14 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                     state.general.discoverBlockedIds ??= [];
                 }
 
+                if (version < 41) {
+                    state.general.unlistenedPlaylistEnabled ??= false;
+                }
+
                 return persistedState;
             },
             name: 'store_settings',
-            version: 40,
+            version: 41,
         },
     ),
 );

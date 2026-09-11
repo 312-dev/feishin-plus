@@ -13,9 +13,11 @@ import { DiscoverSpotlight } from '/@/renderer/features/discover/components/disc
 import { useDiscoverSync } from '/@/renderer/features/discover/discover-sync-store';
 import {
     DiscoverRow,
+    NEW_TO_YOU_ROW_KEY,
     useDiscoverData,
 } from '/@/renderer/features/discover/hooks/use-discover-data';
 import { useMarkDiscoverSeen } from '/@/renderer/features/discover/hooks/use-discover-unread';
+import { useUnlistenedPlaylistMbid } from '/@/renderer/features/listenbrainz-sync/listen-track-store';
 import { usePreviewActions } from '/@/renderer/features/preview/preview-store';
 import { AnimatedPage } from '/@/renderer/features/shared/components/animated-page';
 import { LibraryContainer } from '/@/renderer/features/shared/components/library-container';
@@ -25,8 +27,10 @@ import {
     DiscoverSection,
     useDiscoverItems,
     useDiscoverSettings,
+    useGeneralSettings,
     useWindowSettings,
 } from '/@/renderer/store';
+import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Center } from '/@/shared/components/center/center';
 import { Spinner } from '/@/shared/components/spinner/spinner';
 import { Stack } from '/@/shared/components/stack/stack';
@@ -44,6 +48,25 @@ const DiscoverRoute = () => {
     const { stop } = usePreviewActions();
     const sync = useDiscoverSync();
     const sections = useDiscoverItems();
+    const { unlistenedPlaylistEnabled } = useGeneralSettings();
+    const unlistenedPlaylistMbid = useUnlistenedPlaylistMbid();
+
+    // Null until the unlistened-playlist feature's first sync creates the playlist, so the link
+    // only appears once there is somewhere for it to go.
+    const newToYouHeaderAction =
+        unlistenedPlaylistEnabled && unlistenedPlaylistMbid ? (
+            <ActionIcon
+                component="a"
+                href={`https://listenbrainz.org/playlist/${unlistenedPlaylistMbid}/`}
+                icon="externalLink"
+                iconProps={{ size: 'xs' }}
+                rel="noopener noreferrer"
+                size="xs"
+                target="_blank"
+                tooltip={{ label: t('page.discover.newToYouPlaylistLink') }}
+                variant="subtle"
+            />
+        ) : undefined;
 
     const visibleSections = useMemo(() => sections.filter((s) => !s.disabled), [sections]);
 
@@ -208,6 +231,11 @@ const DiscoverRoute = () => {
                             return (
                                 <DiscoverCarousel
                                     containerQuery={containerQuery}
+                                    headerAction={
+                                        row.key === NEW_TO_YOU_ROW_KEY
+                                            ? newToYouHeaderAction
+                                            : undefined
+                                    }
                                     isArtist={row.isArtist}
                                     items={row.items}
                                     key={row.key}

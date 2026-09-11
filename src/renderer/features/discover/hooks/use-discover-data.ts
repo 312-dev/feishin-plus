@@ -43,6 +43,9 @@ import { pickVariant } from '/@/renderer/features/discover/utils/phrase-variety'
 import { useDiscoverBlockedIds, useSettingsStore } from '/@/renderer/store';
 import { logger } from '/@/renderer/utils/logger';
 
+/** The row key for "New to you", shared with the unlistened-playlist feature and the Discover route. */
+export const NEW_TO_YOU_ROW_KEY = 'new-to-you';
+
 /**
  * How many sources have given up, so the page can say ListenBrainz is unwell rather than
  * silently showing less.
@@ -664,7 +667,7 @@ export function useDiscoverData(username: string) {
         ];
 
         const merged = push(
-            'new-to-you',
+            NEW_TO_YOU_ROW_KEY,
             t('page.discover.newToYou'),
             mergeDiscoverSources(
                 [
@@ -751,7 +754,7 @@ export function useDiscoverData(username: string) {
 
         if (spotlight) {
             const spotlit = new Set(spotlight.tracks.map((track) => track.id));
-            const strip = result.find((row) => row.key === 'new-to-you');
+            const strip = result.find((row) => row.key === NEW_TO_YOU_ROW_KEY);
 
             if (strip) {
                 strip.items = strip.items.filter((item) => !spotlit.has(item.id));

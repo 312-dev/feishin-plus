@@ -44,6 +44,18 @@ const passwordSet = async (password: string, server: string): Promise<boolean> =
     return ipcRenderer.invoke('password-set', password, server);
 };
 
+const listenBrainzTokenGet = async (): Promise<null | string> => {
+    return ipcRenderer.invoke('listenbrainz-token-get');
+};
+
+const listenBrainzTokenRemove = () => {
+    ipcRenderer.send('listenbrainz-token-remove');
+};
+
+const listenBrainzTokenSet = async (token: string): Promise<boolean> => {
+    return ipcRenderer.invoke('listenbrainz-token-set', token);
+};
+
 const setZoomFactor = (zoomFactor: number) => {
     webFrame.setZoomFactor(zoomFactor / 100);
 };
@@ -100,6 +112,9 @@ export const localSettings = {
     env,
     fontError,
     get,
+    listenBrainzTokenGet,
+    listenBrainzTokenRemove,
+    listenBrainzTokenSet,
     openFileSelector,
     passwordGet,
     passwordRemove,

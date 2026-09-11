@@ -20,7 +20,7 @@ import { genreLabel } from '/@/renderer/features/discover/utils/genre-label';
 import { normalizeName } from '/@/renderer/features/discover/utils/library-match';
 import { logger } from '/@/renderer/utils/logger';
 
-const LB_API = 'https://api.listenbrainz.org/1';
+export const LB_API = 'https://api.listenbrainz.org/1';
 
 /**
  * The similarity endpoints live on a separate host from the rest of the API.
@@ -238,7 +238,7 @@ const ARTIST_MBID_LOOKUP_COUNT = 1000;
  *
  * Each attempt waits for the window to roll over, so two covers any burst this page creates.
  */
-const RATE_LIMIT_RETRIES = 2;
+export const RATE_LIMIT_RETRIES = 2;
 
 /**
  * How many collaborative-filter recommendations to ask for.

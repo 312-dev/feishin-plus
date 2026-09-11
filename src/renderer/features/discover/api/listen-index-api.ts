@@ -74,7 +74,7 @@ const CHECKPOINT_PAGES = 10;
  * Newest first, which is what makes this acceptable: one pass already covers the recent years
  * that ListenBrainz draws its suggestions from, and the older tail fills in over later visits.
  */
-const MAX_PAGES_PER_PASS = 20;
+export const MAX_PAGES_PER_PASS = 20;
 
 /**
  * Wall-clock progress of the backfill, carried across passes so the estimate can be honest.
@@ -112,7 +112,7 @@ const REQUEST_TIMEOUT_MS = 20000;
 /** Marks the query as one the IndexedDB persister should keep. See `main.tsx`. */
 export const LISTEN_INDEX_KEY = 'discover-listen-index';
 
-interface LbListen {
+export interface LbListen {
     listened_at: number;
     track_metadata: {
         additional_info?: { recording_mbid?: null | string };
@@ -128,27 +128,6 @@ interface LbListen {
     };
 }
 
-/** Splits an index field back into the set the matcher uses. */
-export function splitKeys(joined: string): string[] {
-    return joined ? joined.split('\n') : [];
-}
-
-async function fetchListenCount(username: string, signal?: AbortSignal): Promise<number> {
-    const response = await lbRequest(
-        `https://api.listenbrainz.org/1/user/${encodeURIComponent(username)}/listen-count`,
-        { signal: withTimeout(signal) },
-        { isBackground: true },
-    );
-
-    if (!response.ok) {
-        throw new Error(`ListenBrainz ${response.status}`);
-    }
-
-    const body = (await response.json()) as { payload?: { count?: number } };
-
-    return body.payload?.count ?? 0;
-}
-
 /**
  * One page of listens, newest first, older than `maxTs`.
  *
@@ -157,7 +136,7 @@ async function fetchListenCount(username: string, signal?: AbortSignal): Promise
  * reading of the allowance, so it stayed inside the limit on its own while leaving the page it
  * was running underneath nothing to spend.
  */
-async function fetchListenPage(
+export async function fetchListenPage(
     username: string,
     maxTs: null | number,
     signal?: AbortSignal,
@@ -181,6 +160,85 @@ async function fetchListenPage(
     const body = (await response.json()) as { payload?: { listens?: LbListen[] } };
 
     return body.payload?.listens ?? [];
+}
+
+/** Splits an index field back into the set the matcher uses. */
+export function splitKeys(joined: string): string[] {
+    return joined ? joined.split('\n') : [];
+}
+
+/**
+ * Walks backward through the history, newest first, collecting keys as it goes.
+ *
+ * Backward in both modes, including the catch-up, which is not the obvious choice. The obvious
+ * choice is `min_ts` set to the last sync, but that parameter returns the *newest* listens
+ * above the bound rather than the oldest, so once more than one page has accrued it silently
+ * skips everything in between. Walking down from the top and stopping at the old high-water
+ * mark has no such hole and needs only one implementation.
+ */
+export async function walkBack(
+    username: string,
+    options: {
+        fromTs: null | number;
+        maxPages?: number;
+        onPage: (listens: LbListen[]) => void;
+        signal?: AbortSignal;
+        stopAtTs: null | number;
+    },
+): Promise<{ oldestTs: null | number; reachedEnd: boolean }> {
+    let cursor = options.fromTs;
+    let oldestTs: null | number = null;
+    let pages = 0;
+
+    for (;;) {
+        if (options.maxPages !== undefined && pages >= options.maxPages) {
+            return { oldestTs, reachedEnd: false };
+        }
+
+        pages += 1;
+
+        options.signal?.throwIfAborted();
+
+        const page = await fetchListenPage(username, cursor, options.signal);
+
+        if (page.length === 0) {
+            return { oldestTs, reachedEnd: true };
+        }
+
+        const stop = options.stopAtTs;
+        const kept = stop === null ? page : page.filter((listen) => listen.listened_at > stop);
+
+        if (kept.length > 0) {
+            options.onPage(kept);
+            oldestTs = kept[kept.length - 1].listened_at;
+        }
+
+        // The stop line fell inside this page, so everything wanted has been seen.
+        if (kept.length < page.length) {
+            return { oldestTs, reachedEnd: false };
+        }
+
+        // `max_ts` is exclusive, verified against the API: a page requested at the newest
+        // listen's own timestamp comes back starting one listen below it. Subtracting a second
+        // here would therefore skip any second that happens to hold two listens.
+        cursor = page[page.length - 1].listened_at;
+    }
+}
+
+async function fetchListenCount(username: string, signal?: AbortSignal): Promise<number> {
+    const response = await lbRequest(
+        `https://api.listenbrainz.org/1/user/${encodeURIComponent(username)}/listen-count`,
+        { signal: withTimeout(signal) },
+        { isBackground: true },
+    );
+
+    if (!response.ok) {
+        throw new Error(`ListenBrainz ${response.status}`);
+    }
+
+    const body = (await response.json()) as { payload?: { count?: number } };
+
+    return body.payload?.count ?? 0;
 }
 
 /** Joins index entries for storage. See `ListenIndexData.recordingMbids` for why. */
@@ -348,64 +406,6 @@ async function syncListenIndex(
     }
 
     return snapshot();
-}
-
-/**
- * Walks backward through the history, newest first, collecting keys as it goes.
- *
- * Backward in both modes, including the catch-up, which is not the obvious choice. The obvious
- * choice is `min_ts` set to the last sync, but that parameter returns the *newest* listens
- * above the bound rather than the oldest, so once more than one page has accrued it silently
- * skips everything in between. Walking down from the top and stopping at the old high-water
- * mark has no such hole and needs only one implementation.
- */
-async function walkBack(
-    username: string,
-    options: {
-        fromTs: null | number;
-        maxPages?: number;
-        onPage: (listens: LbListen[]) => void;
-        signal?: AbortSignal;
-        stopAtTs: null | number;
-    },
-): Promise<{ oldestTs: null | number; reachedEnd: boolean }> {
-    let cursor = options.fromTs;
-    let oldestTs: null | number = null;
-    let pages = 0;
-
-    for (;;) {
-        if (options.maxPages !== undefined && pages >= options.maxPages) {
-            return { oldestTs, reachedEnd: false };
-        }
-
-        pages += 1;
-
-        options.signal?.throwIfAborted();
-
-        const page = await fetchListenPage(username, cursor, options.signal);
-
-        if (page.length === 0) {
-            return { oldestTs, reachedEnd: true };
-        }
-
-        const stop = options.stopAtTs;
-        const kept = stop === null ? page : page.filter((listen) => listen.listened_at > stop);
-
-        if (kept.length > 0) {
-            options.onPage(kept);
-            oldestTs = kept[kept.length - 1].listened_at;
-        }
-
-        // The stop line fell inside this page, so everything wanted has been seen.
-        if (kept.length < page.length) {
-            return { oldestTs, reachedEnd: false };
-        }
-
-        // `max_ts` is exclusive, verified against the API: a page requested at the newest
-        // listen's own timestamp comes back starting one listen below it. Subtracting a second
-        // here would therefore skip any second that happens to hold two listens.
-        cursor = page[page.length - 1].listened_at;
-    }
 }
 
 /**
