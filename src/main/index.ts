@@ -23,13 +23,19 @@ import {
 import electronLocalShortcut from 'electron-localshortcut';
 import { AppImageUpdater, autoUpdater, MacUpdater, NsisUpdater } from 'electron-updater';
 import { access, constants } from 'fs';
+import { createServer } from 'http';
 import path, { join } from 'path';
 import semver from 'semver';
+import { pathToFileURL } from 'url';
 
 import packageJson from '../../package.json';
 import { disableMediaKeys, enableMediaKeys } from './features/core/player/media-keys';
 import { shutdownServer } from './features/core/remote';
 import { store } from './features/core/settings';
+import {
+    migrateLegacyRendererStorage,
+    STORAGE_MIGRATION_PATH,
+} from './features/core/storage-migration';
 import { canHandleVisualizerDisplayMedia } from './features/core/visualizer';
 import log, { autoUpdaterLogInterface } from './logger';
 import MenuBuilder, { MenuPlaybackState } from './menu';
@@ -344,6 +350,43 @@ function createGithubUpdaterInstance(
 protocol.registerSchemesAsPrivileged([
     { privileges: { bypassCSP: true, corsEnabled: true }, scheme: 'feishin' },
 ]);
+
+// Arbitrary, fixed: the renderer's origin is `http://127.0.0.1:<port>`, and browser storage
+// (localStorage/IndexedDB) is keyed on the full origin including port, so a random port picked
+// via `listen(0, ...)` would give every launch a fresh, empty origin - nothing would ever persist.
+const RENDERER_SERVER_PORT = 47823;
+const RENDERER_SERVER_ORIGIN = `http://127.0.0.1:${RENDERER_SERVER_PORT}`;
+
+function startRendererServer(): Promise<void> {
+    const server = createServer((request, response) => {
+        const url = new URL(request.url ?? '/', 'http://localhost');
+
+        // A minimal document on this origin, so the one-time storage migration can reach the
+        // origin's localStorage/IndexedDB without loading `/index.html` and booting a second
+        // copy of the renderer just to write to it.
+        if (url.pathname === STORAGE_MIGRATION_PATH) {
+            response.writeHead(200, { 'Content-Type': 'text/html' });
+            response.end('<!doctype html><title>storage</title>');
+            return;
+        }
+
+        (async () => {
+            const relativePath = url.pathname === '/' ? '/index.html' : url.pathname;
+            const filePath = join(__dirname, '../renderer', decodeURIComponent(relativePath));
+
+            const fileResponse = await net.fetch(pathToFileURL(filePath).href);
+            response.writeHead(fileResponse.status, Object.fromEntries(fileResponse.headers));
+            response.end(Buffer.from(await fileResponse.arrayBuffer()));
+        })().catch(() => {
+            response.writeHead(404);
+            response.end();
+        });
+    });
+
+    return new Promise((resolve) => {
+        server.listen(RENDERER_SERVER_PORT, '127.0.0.1', () => resolve());
+    });
+}
 
 process.on('uncaughtException', (error: any) => {
     log.error('Error in main process', error);
@@ -925,7 +968,12 @@ async function createWindow(first = true): Promise<void> {
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
         mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
     } else {
-        mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+        // Served over loopback HTTP rather than `loadFile`, which would give the page an opaque
+        // `file://` origin. Browser storage is keyed on origin, so this is also where settings
+        // live; the migration is awaited first so anything still in the older `file://` bucket is
+        // in place before the renderer's stores hydrate.
+        await migrateLegacyRendererStorage(RENDERER_SERVER_ORIGIN);
+        mainWindow.loadURL(`${RENDERER_SERVER_ORIGIN}/index.html`);
     }
 }
 
@@ -1151,7 +1199,7 @@ if (!singleInstance) {
     });
 
     app.whenReady()
-        .then(() => {
+        .then(async () => {
             log.info('App ready', {
                 arch: process.arch,
                 electron: process.versions.electron,
@@ -1160,6 +1208,8 @@ if (!singleInstance) {
                 platform: process.platform,
                 version: packageJson.version,
             });
+
+            await startRendererServer();
 
             protocol.handle('feishin', async () => {
                 const filePath = store.get('local_font_path');
@@ -1211,7 +1261,7 @@ if (!singleInstance) {
                     responseHeaders: {
                         ...details.responseHeaders,
                         'Content-Security-Policy': [
-                            "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://umami.jeffvli.org; style-src 'self' 'unsafe-inline'; media-src 'self' http: https: data: blob:; img-src 'self' http: https: data: blob:; connect-src 'self' http: https: ws: wss:; default-src 'self';",
+                            "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://umami.jeffvli.org; style-src 'self' 'unsafe-inline'; media-src 'self' http: https: data: blob:; img-src 'self' http: https: data: blob:; connect-src 'self' http: https: ws: wss:; frame-src 'self'; default-src 'self';",
                         ],
                     },
                 });
