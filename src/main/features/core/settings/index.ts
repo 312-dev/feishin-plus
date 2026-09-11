@@ -194,6 +194,37 @@ ipcMain.handle('password-set', (_event, password: string, server: string) => {
     return false;
 });
 
+ipcMain.handle('listenbrainz-token-get', (): null | string => {
+    if (safeStorage.isEncryptionAvailable()) {
+        const encrypted = store.get('listenBrainzToken') as string | undefined;
+
+        if (!encrypted) return null;
+
+        return safeStorage.decryptString(Buffer.from(encrypted, 'hex'));
+    }
+
+    log.warn('Token encryption unavailable', { token: 'listenBrainz' });
+    return null;
+});
+
+ipcMain.on('listenbrainz-token-remove', () => {
+    store.delete('listenBrainzToken');
+    log.info('ListenBrainz token removed');
+});
+
+ipcMain.handle('listenbrainz-token-set', (_event, token: string) => {
+    if (safeStorage.isEncryptionAvailable()) {
+        const encrypted = safeStorage.encryptString(token);
+        store.set('listenBrainzToken', encrypted.toString('hex'));
+
+        log.info('ListenBrainz token saved');
+        return true;
+    }
+
+    log.warn('Token encryption unavailable', { token: 'listenBrainz' });
+    return false;
+});
+
 ipcMain.on('theme-set', (_event, theme: TitleTheme) => {
     store.set('theme', theme);
     nativeTheme.themeSource = theme;

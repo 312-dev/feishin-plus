@@ -24,6 +24,8 @@ import { PlayerType } from '/@/shared/types/types';
 
 interface DiscoverCarouselProps {
     containerQuery?: ReturnType<typeof useGridCarouselContainerQuery>;
+    /** Rendered at the row's top right, before the page arrows - e.g. a link out for the row. */
+    headerAction?: React.ReactNode;
     /** Artists render as circles and have nothing to preview. */
     isArtist?: boolean;
     items: DiscoverItem[];
@@ -80,7 +82,7 @@ const SOURCE_ROW: DataRow = {
  * static web build needs no special handling at all.
  */
 export function DiscoverCarousel(props: DiscoverCarouselProps) {
-    const { containerQuery, isArtist, items, rowCount = 1, title } = props;
+    const { containerQuery, headerAction, isArtist, items, rowCount = 1, title } = props;
     const { t } = useTranslation();
     const playbackType = usePlaybackType();
     const playingId = usePreviewPlayingId();
@@ -226,6 +228,7 @@ export function DiscoverCarousel(props: DiscoverCarouselProps) {
         <GridCarousel
             cards={cards}
             containerQuery={containerQuery}
+            headerAction={headerAction}
             onNextPage={noop}
             onPrevPage={noop}
             rowCount={rowCount}
