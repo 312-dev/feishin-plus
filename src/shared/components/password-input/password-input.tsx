@@ -17,7 +17,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             <MantinePasswordInput
                 classNames={{
                     description: styles.description,
-                    input: styles.input,
+                    // Mantine's PasswordInput puts the real <input> under `innerInput`, not
+                    // `input` (that name is TextInput's, which has no separate wrapper) - so
+                    // `input` here targets nothing and the visible field was left unstyled,
+                    // rendering with no background/border against a dark theme.
+                    innerInput: styles.input,
                     label: styles.label,
                     required: styles.required,
                     root: styles.root,
