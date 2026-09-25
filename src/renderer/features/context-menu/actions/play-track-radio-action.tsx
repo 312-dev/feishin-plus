@@ -36,22 +36,50 @@ export const PlayTrackRadioAction = ({
             if (!serverId || !song) return;
 
             try {
-                const similarSongs = await queryClient.fetchQuery({
-                    ...songsQueries.similar({
-                        query: {
-                            count: radioCount,
-                            songId: song.id,
-                        },
-                        serverId,
-                    }),
-                    queryKey: queryKeys.player.fetch({ similarSongs: song.id }),
-                });
+                let radioSongs =
+                    (await queryClient.fetchQuery({
+                        ...songsQueries.similar({
+                            query: {
+                                count: radioCount,
+                                songId: song.id,
+                            },
+                            serverId,
+                        }),
+                        queryKey: queryKeys.player.fetch({ similarSongs: song.id }),
+                    })) ?? [];
 
-                if (similarSongs && similarSongs.length > 0) {
+                // Track-level similarity only returns matches that are in the library, so it
+                // often comes back short. Fill the rest from the track artist's radio.
+                const artistId = song.artists[0]?.id;
+                if (radioSongs.length < radioCount && artistId) {
+                    try {
+                        const artistRadioSongs = await queryClient.fetchQuery({
+                            ...songsQueries.artistRadio({
+                                query: { artistId, count: radioCount },
+                                serverId,
+                            }),
+                            queryKey: queryKeys.player.fetch({ artistId }),
+                        });
+                        const seen = new Set([song.id, ...radioSongs.map((s) => s.id)]);
+                        const fill = (artistRadioSongs ?? [])
+                            .filter((s) => !seen.has(s.id))
+                            .slice(0, radioCount - radioSongs.length);
+                        logger.info('Track radio topped up from artist radio', {
+                            added: fill.length,
+                            similar: radioSongs.length,
+                            target: radioCount,
+                        });
+                        radioSongs = [...radioSongs, ...fill];
+                    } catch (error) {
+                        logger.warn('Track radio top-up from artist radio failed', { error });
+                    }
+                }
+
+                if (radioSongs.length > 0) {
                     // We need to skip the first song when adding to the queue as NEXT or LAST, otherwise you will have a duplicate song
                     const shouldSkipFirstSong =
                         skipFirstSong && (playType === Play.NEXT || playType === Play.LAST);
-                    const queueSongs = shouldSkipFirstSong ? similarSongs : [song, ...similarSongs];
+                    const queueSongs = shouldSkipFirstSong ? radioSongs : [song, ...radioSongs];
                     player.addToQueueByData(queueSongs, playType);
                 } else {
                     toast.info({ message: t('player.playbackFetchNoResults') });
