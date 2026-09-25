@@ -6,7 +6,9 @@ import { queryKeys } from '/@/renderer/api/query-keys';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
 import { songsQueries } from '/@/renderer/features/songs/api/songs-api';
 import { useArtistRadioCount, useCurrentServerId, usePlayButtonBehavior } from '/@/renderer/store';
+import { logger } from '/@/renderer/utils/logger';
 import { ContextMenu } from '/@/shared/components/context-menu/context-menu';
+import { toast } from '/@/shared/components/toast/toast';
 import { Song } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
@@ -51,12 +53,14 @@ export const PlayTrackRadioAction = ({
                         skipFirstSong && (playType === Play.NEXT || playType === Play.LAST);
                     const queueSongs = shouldSkipFirstSong ? similarSongs : [song, ...similarSongs];
                     player.addToQueueByData(queueSongs, playType);
+                } else {
+                    toast.info({ message: t('player.playbackFetchNoResults') });
                 }
             } catch (error) {
-                console.error('Failed to load track radio:', error);
+                logger.error('Failed to load track radio', { error });
             }
         },
-        [player, queryClient, radioCount, serverId, skipFirstSong, song],
+        [player, queryClient, radioCount, serverId, skipFirstSong, song, t],
     );
 
     const handlePlayTrackRadioNow = useCallback(() => {
