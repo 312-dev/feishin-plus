@@ -324,12 +324,17 @@ export function useMusicVideoSync(
             const now = performance.now();
             const isEcho = now < selfDrivenUntilRef.current;
             const isPipExit = now < ignorePauseUntil;
-            const forwarded = !isEcho && !isPipExit;
+            // Playing to the end fires `pause` just before `ended`. A clip shorter than the
+            // track runs out while the song still has seconds left, and that is not a request
+            // to stop the music.
+            const isVideoEnd = video.ended;
+            const forwarded = !isEcho && !isPipExit && !isVideoEnd;
 
             logger.info('Music video: element paused', {
                 forwarded,
                 isEcho,
                 isPipExit,
+                isVideoEnd,
                 playerStatus: usePlayerStore.getState().player.status,
                 videoId,
             });
